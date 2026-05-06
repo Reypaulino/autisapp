@@ -106,7 +106,7 @@ export default function SplashScreen({ onDone }: Props) {
           ]}
         >
           <Image
-            source={require('@/assets/images/icon.png')}
+            source={require('@/assets/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -119,12 +119,12 @@ export default function SplashScreen({ onDone }: Props) {
             { opacity: titleOpacity, transform: [{ translateY: titleY }] },
           ]}
         >
-          Learning Games
+          ThinkiTiles
         </Animated.Text>
 
         {/* Tagline */}
         <Animated.Text style={[styles.subtitle, { opacity: subOpacity }]}>
-          Fun · Educational · For Everyone
+          Learn · Play · Grow
         </Animated.Text>
 
         {/* Loading dots */}
@@ -163,7 +163,7 @@ function PulseDot({ delay }: { delay: number }) {
 const styles = StyleSheet.create({
   screen: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#0D2463',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 999,
@@ -195,9 +195,9 @@ const styles = StyleSheet.create({
     elevation: 16,
   },
   logo: {
-    width: 130,
-    height: 130,
-    borderRadius: 30,
+    width: 160,
+    height: 160,
+    borderRadius: 36,
   },
   title: {
     fontSize: 38,

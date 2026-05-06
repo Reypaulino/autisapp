@@ -41,7 +41,7 @@ export default function HomeScreen() {
 
         <Text style={[styles.appName, { fontSize: 28 * scale }]}>ThinkiTiles</Text>
         <Text style={[styles.appTagline, { fontSize: 13 * scale }]}>
-          Fun educational games designed{'\n'}for curious young minds!
+          Learn · Play · Grow{'\n'}Games for curious young minds!
         </Text>
 
         {/* Decorative badges */}
