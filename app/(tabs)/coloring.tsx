@@ -323,8 +323,8 @@ export default function ColoringPage() {
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [liveStroke, setLiveStroke] = useState<Stroke | null>(null);
 
-  const canvasWRef = useRef(200);
-  const canvasHRef = useRef(200);
+  const [canvasSz, setCanvasSz] = useState(0);
+  const canvasSizeRef = useRef(0);
   const currentPts = useRef<{ x: number; y: number }[]>([]);
   const colorRef = useRef(selectedColor);
   const brushRef = useRef(brushSize);
@@ -341,20 +341,16 @@ export default function ColoringPage() {
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (e) => {
-        const sc = Math.min(canvasWRef.current, canvasHRef.current) / 200;
-        const ox = (canvasWRef.current - 200 * sc) / 2;
-        const oy = (canvasHRef.current - 200 * sc) / 2;
-        const x = (e.nativeEvent.locationX - ox) / sc;
-        const y = (e.nativeEvent.locationY - oy) / sc;
+        const ratio = canvasSizeRef.current > 0 ? 200 / canvasSizeRef.current : 1;
+        const x = e.nativeEvent.locationX * ratio;
+        const y = e.nativeEvent.locationY * ratio;
         currentPts.current = [{ x, y }];
         setLiveStroke({ d: buildPath(currentPts.current), color: colorRef.current, width: brushRef.current });
       },
       onPanResponderMove: (e) => {
-        const sc = Math.min(canvasWRef.current, canvasHRef.current) / 200;
-        const ox = (canvasWRef.current - 200 * sc) / 2;
-        const oy = (canvasHRef.current - 200 * sc) / 2;
-        const x = (e.nativeEvent.locationX - ox) / sc;
-        const y = (e.nativeEvent.locationY - oy) / sc;
+        const ratio = canvasSizeRef.current > 0 ? 200 / canvasSizeRef.current : 1;
+        const x = e.nativeEvent.locationX * ratio;
+        const y = e.nativeEvent.locationY * ratio;
         currentPts.current = [...currentPts.current, { x, y }];
         setLiveStroke({ d: buildPath(currentPts.current), color: colorRef.current, width: brushRef.current });
       },
@@ -420,69 +416,67 @@ export default function ColoringPage() {
         </ScrollView>
       ) : (
         <View style={st.drawingArea}>
-          <View style={st.sidebar}>
-            <Text style={[st.sideLabel, { fontSize: 10 * scale }]}>🎨 Colour</Text>
-            <View style={st.palette}>
+          {/* Square canvas — centred, fills available height */}
+          <View style={st.canvasWrap}
+            onLayout={e => {
+              const sz = Math.min(e.nativeEvent.layout.width, e.nativeEvent.layout.height);
+              canvasSizeRef.current = sz;
+              setCanvasSz(sz);
+            }}
+          >
+            {canvasSz > 0 && (
+              <View style={[st.canvas, { width: canvasSz, height: canvasSz, backgroundColor: selectedAnimal.bgColor }]}>
+                <Svg style={StyleSheet.absoluteFill} viewBox="0 0 200 200" pointerEvents="none">
+                  <Defs>
+                    <ClipPath id="animalClip">
+                      {selectedAnimal.clipShape()}
+                    </ClipPath>
+                  </Defs>
+                  <G clipPath="url(#animalClip)">
+                    {strokes.map((s, i) => (
+                      <Path key={i} d={s.d} stroke={s.color} strokeWidth={s.width}
+                        fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    ))}
+                    {liveStroke && (
+                      <Path d={liveStroke.d} stroke={liveStroke.color} strokeWidth={liveStroke.width}
+                        fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    )}
+                  </G>
+                </Svg>
+                <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                  {selectedAnimal.outline()}
+                </View>
+                <View style={StyleSheet.absoluteFill} {...panResponder.panHandlers} />
+              </View>
+            )}
+          </View>
+
+          {/* Bottom toolbar */}
+          <View style={st.toolbar}>
+            <View style={[st.activeDot, { backgroundColor: selectedColor }]} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.paletteRow}>
               {PALETTE.map(c => (
                 <TouchableOpacity key={c}
                   style={[st.swatch, {
                     backgroundColor: c,
                     borderColor: selectedColor === c ? '#FFD700' : 'rgba(255,255,255,0.3)',
-                    borderWidth: selectedColor === c ? 4 : 1.5,
-                    transform: [{ scale: selectedColor === c ? 1.2 : 1 }],
+                    borderWidth: selectedColor === c ? 3 : 1.5,
+                    transform: [{ scale: selectedColor === c ? 1.15 : 1 }],
                   }]}
                   onPress={() => setSelectedColor(c)} activeOpacity={0.8}
                 />
               ))}
-            </View>
-            <Text style={[st.sideLabel, { fontSize: 10 * scale, marginTop: 14 }]}>🖌 Brush</Text>
+            </ScrollView>
             <View style={st.brushRow}>
               {BRUSHES.map(b => (
                 <TouchableOpacity key={b}
-                  style={[st.brushBtn, brushSize === b && { borderColor: '#FFD700', borderWidth: 2.5 }]}
+                  style={[st.brushBtn, brushSize === b && st.brushBtnActive]}
                   onPress={() => setBrushSize(b)} activeOpacity={0.8}
                 >
-                  <View style={{ width: Math.max(4, b * 1.4), height: Math.max(4, b * 1.4), borderRadius: 99, backgroundColor: selectedColor }} />
+                  <View style={{ width: Math.max(4, b * 1.3), height: Math.max(4, b * 1.3), borderRadius: 99, backgroundColor: selectedColor }} />
                 </TouchableOpacity>
               ))}
             </View>
-            <View style={st.currentColor}>
-              <View style={[st.currentDot, { backgroundColor: selectedColor }]} />
-              <Text style={[st.currentTxt, { fontSize: 9 * scale }]}>Selected</Text>
-            </View>
-            <Text style={[st.tip, { fontSize: 8 * scale }]}>💡 Colour stays inside the animal!</Text>
-          </View>
-
-          <View style={[st.canvas, { backgroundColor: selectedAnimal.bgColor }]}
-            onLayout={e => {
-              canvasWRef.current = e.nativeEvent.layout.width;
-              canvasHRef.current = e.nativeEvent.layout.height;
-            }}
-          >
-            {/* Strokes clipped to the animal silhouette */}
-            <Svg style={StyleSheet.absoluteFill} viewBox="0 0 200 200" pointerEvents="none">
-              <Defs>
-                <ClipPath id="animalClip">
-                  {selectedAnimal.clipShape()}
-                </ClipPath>
-              </Defs>
-              <G clipPath="url(#animalClip)">
-                {strokes.map((s, i) => (
-                  <Path key={i} d={s.d} stroke={s.color} strokeWidth={s.width}
-                    fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                ))}
-                {liveStroke && (
-                  <Path d={liveStroke.d} stroke={liveStroke.color} strokeWidth={liveStroke.width}
-                    fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                )}
-              </G>
-            </Svg>
-            {/* Outline always on top */}
-            <View style={StyleSheet.absoluteFill} pointerEvents="none">
-              {selectedAnimal.outline()}
-            </View>
-            {/* Touch capture */}
-            <View style={StyleSheet.absoluteFill} {...panResponder.panHandlers} />
           </View>
         </View>
       )}
@@ -512,22 +506,23 @@ const st = StyleSheet.create({
   },
   thumb: { width: 90, height: 90 },
   cardName: { fontWeight: '900', color: '#333' },
-  drawingArea: { flex: 1, flexDirection: 'row', gap: 10 },
-  sidebar: { width: 148, backgroundColor: '#16213E', borderRadius: 18, padding: 12, gap: 6 },
-  sideLabel: { color: '#FFD700', fontWeight: '900', letterSpacing: 0.3 },
-  palette: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  drawingArea: { flex: 1, gap: 8 },
+  canvasWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  canvas: { borderRadius: 22, overflow: 'hidden' },
+  toolbar: {
+    height: 64, backgroundColor: '#16213E', borderRadius: 18,
+    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 10,
+  },
+  activeDot: { width: 34, height: 34, borderRadius: 17, borderWidth: 3, borderColor: '#FFD700', flexShrink: 0 },
+  paletteRow: { flexDirection: 'row', gap: 8, alignItems: 'center', paddingHorizontal: 4 },
   swatch: {
-    width: 28, height: 28, borderRadius: 14,
+    width: 32, height: 32, borderRadius: 16,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3, elevation: 3,
   },
-  brushRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
+  brushRow: { flexDirection: 'row', gap: 6, alignItems: 'center', flexShrink: 0 },
   brushBtn: {
-    width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.1)',
+    width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center',
   },
-  currentColor: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
-  currentDot: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#fff' },
-  currentTxt: { color: 'rgba(255,255,255,0.6)', fontWeight: '700' },
-  tip: { color: 'rgba(255,255,255,0.35)', fontWeight: '600', lineHeight: 14, marginTop: 'auto' },
-  canvas: { flex: 1, borderRadius: 22, overflow: 'hidden' },
+  brushBtnActive: { borderColor: '#FFD700', borderWidth: 2.5, backgroundColor: 'rgba(255,215,0,0.15)' },
 });
