@@ -341,14 +341,20 @@ export default function ColoringPage() {
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (e) => {
-        const x = e.nativeEvent.locationX * (200 / canvasWRef.current);
-        const y = e.nativeEvent.locationY * (200 / canvasHRef.current);
+        const sc = Math.min(canvasWRef.current, canvasHRef.current) / 200;
+        const ox = (canvasWRef.current - 200 * sc) / 2;
+        const oy = (canvasHRef.current - 200 * sc) / 2;
+        const x = (e.nativeEvent.locationX - ox) / sc;
+        const y = (e.nativeEvent.locationY - oy) / sc;
         currentPts.current = [{ x, y }];
         setLiveStroke({ d: buildPath(currentPts.current), color: colorRef.current, width: brushRef.current });
       },
       onPanResponderMove: (e) => {
-        const x = e.nativeEvent.locationX * (200 / canvasWRef.current);
-        const y = e.nativeEvent.locationY * (200 / canvasHRef.current);
+        const sc = Math.min(canvasWRef.current, canvasHRef.current) / 200;
+        const ox = (canvasWRef.current - 200 * sc) / 2;
+        const oy = (canvasHRef.current - 200 * sc) / 2;
+        const x = (e.nativeEvent.locationX - ox) / sc;
+        const y = (e.nativeEvent.locationY - oy) / sc;
         currentPts.current = [...currentPts.current, { x, y }];
         setLiveStroke({ d: buildPath(currentPts.current), color: colorRef.current, width: brushRef.current });
       },
@@ -454,7 +460,7 @@ export default function ColoringPage() {
             }}
           >
             {/* Strokes clipped to the animal silhouette */}
-            <Svg style={StyleSheet.absoluteFill} viewBox="0 0 200 200" preserveAspectRatio="none" pointerEvents="none">
+            <Svg style={StyleSheet.absoluteFill} viewBox="0 0 200 200" pointerEvents="none">
               <Defs>
                 <ClipPath id="animalClip">
                   {selectedAnimal.clipShape()}
