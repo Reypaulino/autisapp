@@ -3,7 +3,7 @@ import {
   StyleSheet, View, TouchableOpacity, Text, Dimensions, ScrollView, PanResponder,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import Svg, { Path, Circle, Ellipse, Rect, Line } from 'react-native-svg';
+import Svg, { Path, Circle, Ellipse, Rect, Line, Defs, ClipPath, G } from 'react-native-svg';
 
 function getScale(w: number) {
   if (w >= 1300) return 1.3;
@@ -37,6 +37,7 @@ type Stroke = { d: string; color: string; width: number };
 
 type Vehicle = {
   id: string; name: string; emoji: string; bgColor: string;
+  clipShape: () => React.ReactNode;
   outline: () => React.ReactNode;
 };
 
@@ -44,6 +45,14 @@ const VEHICLES: Vehicle[] = [
   // ── Car ──────────────────────────────────────────────────────────────────────
   {
     id: 'car', name: 'Car', emoji: '🚗', bgColor: '#F0F8FF',
+    clipShape: () => (
+      <>
+        <Path d="M18 105 L18 148 Q18 152 30 152 L170 152 Q182 152 182 148 L182 105Z" fill="black" />
+        <Path d="M55 105 Q65 68 100 62 Q135 68 145 105Z" fill="black" />
+        <Circle cx={52} cy={150} r={18} fill="black" />
+        <Circle cx={148} cy={150} r={18} fill="black" />
+      </>
+    ),
     outline: () => (
       <Svg width="100%" height="100%" viewBox="0 0 200 200">
         <Path d="M18 118 Q18 145 30 148 L170 148 Q182 145 182 118 L182 105 L18 105Z"
@@ -70,6 +79,13 @@ const VEHICLES: Vehicle[] = [
   // ── Bus ──────────────────────────────────────────────────────────────────────
   {
     id: 'bus', name: 'Bus', emoji: '🚌', bgColor: '#FFFEF0',
+    clipShape: () => (
+      <>
+        <Rect x={16} y={62} width={168} height={88} rx={8} fill="black" />
+        <Circle cx={52} cy={154} r={17} fill="black" />
+        <Circle cx={148} cy={154} r={17} fill="black" />
+      </>
+    ),
     outline: () => (
       <Svg width="100%" height="100%" viewBox="0 0 200 200">
         <Rect x={16} y={78} width={168} height={72} rx={8} fill="transparent" stroke="#333" strokeWidth={2.5} />
@@ -92,6 +108,16 @@ const VEHICLES: Vehicle[] = [
   // ── Airplane ─────────────────────────────────────────────────────────────────
   {
     id: 'airplane', name: 'Airplane', emoji: '✈️', bgColor: '#EEF2FF',
+    clipShape: () => (
+      <>
+        <Ellipse cx={100} cy={100} rx={72} ry={20} fill="black" />
+        <Path d="M50 104 Q70 72 98 96 Q70 110 50 104Z" fill="black" />
+        <Path d="M150 104 Q130 72 102 96 Q130 110 150 104Z" fill="black" />
+        <Path d="M30 100 Q28 72 40 66 Q48 72 46 100Z" fill="black" />
+        <Path d="M20 100 Q36 88 52 96 Q36 104 20 100Z" fill="black" />
+        <Ellipse cx={100} cy={114} rx={28} ry={7} fill="black" />
+      </>
+    ),
     outline: () => (
       <Svg width="100%" height="100%" viewBox="0 0 200 200">
         <Path d="M50 104 Q70 72 98 96 Q70 110 50 104Z" fill="transparent" stroke="#333" strokeWidth={2} />
@@ -112,6 +138,18 @@ const VEHICLES: Vehicle[] = [
   // ── Train ────────────────────────────────────────────────────────────────────
   {
     id: 'train', name: 'Train', emoji: '🚂', bgColor: '#FFF0F0',
+    clipShape: () => (
+      <>
+        <Ellipse cx={62} cy={96} rx={30} ry={18} fill="black" />
+        <Rect x={22} y={96} width={80} height={50} rx={8} fill="black" />
+        <Rect x={102} y={82} width={76} height={64} rx={6} fill="black" />
+        <Rect x={46} y={56} width={14} height={40} rx={3} fill="black" />
+        <Circle cx={38} cy={155} r={14} fill="black" />
+        <Circle cx={72} cy={155} r={14} fill="black" />
+        <Circle cx={118} cy={155} r={12} fill="black" />
+        <Circle cx={162} cy={155} r={12} fill="black" />
+      </>
+    ),
     outline: () => (
       <Svg width="100%" height="100%" viewBox="0 0 200 200">
         <Circle cx={52} cy={46} r={10} fill="transparent" stroke="#aaa" strokeWidth={1.5} />
@@ -141,6 +179,16 @@ const VEHICLES: Vehicle[] = [
   // ── Rocket ───────────────────────────────────────────────────────────────────
   {
     id: 'rocket', name: 'Rocket', emoji: '🚀', bgColor: '#0D0D20',
+    clipShape: () => (
+      <>
+        <Path d="M80 60 Q80 160 100 160 Q120 160 120 60Z" fill="black" />
+        <Path d="M80 60 Q80 38 100 22 Q120 38 120 60Z" fill="black" />
+        <Path d="M82 140 L62 165 L82 158Z" fill="black" />
+        <Path d="M118 140 L138 165 L118 158Z" fill="black" />
+        <Rect x={86} y={158} width={28} height={14} rx={4} fill="black" />
+        <Path d="M84 168 Q90 185 100 190 Q110 185 116 168Z" fill="black" />
+      </>
+    ),
     outline: () => (
       <Svg width="100%" height="100%" viewBox="0 0 200 200">
         <Path d="M84 168 Q90 185 100 190 Q110 185 116 168Z" fill="transparent" stroke="#E65100" strokeWidth={1.5} />
@@ -164,6 +212,16 @@ const VEHICLES: Vehicle[] = [
   // ── Helicopter ───────────────────────────────────────────────────────────────
   {
     id: 'helicopter', name: 'Helicopter', emoji: '🚁', bgColor: '#F0FFF4',
+    clipShape: () => (
+      <>
+        <Path d="M42 84 Q42 140 100 144 Q158 140 158 118 L158 100 Q148 84 100 82Z" fill="black" />
+        <Path d="M148 106 Q165 104 175 98 Q175 114 165 116 Q155 118 148 118Z" fill="black" />
+        <Rect x={18} y={66} width={74} height={8} rx={4} fill="black" />
+        <Rect x={108} y={66} width={74} height={8} rx={4} fill="black" />
+        <Rect x={42} y={156} width={50} height={7} rx={3} fill="black" />
+        <Rect x={96} y={156} width={50} height={7} rx={3} fill="black" />
+      </>
+    ),
     outline: () => (
       <Svg width="100%" height="100%" viewBox="0 0 200 200">
         <Rect x={18} y={66} width={74} height={8} rx={4} fill="transparent" stroke="#333" strokeWidth={2} />
@@ -186,6 +244,15 @@ const VEHICLES: Vehicle[] = [
   // ── Ship ─────────────────────────────────────────────────────────────────────
   {
     id: 'ship', name: 'Ship', emoji: '🚢', bgColor: '#E8FAFB',
+    clipShape: () => (
+      <>
+        <Path d="M22 120 Q22 162 40 162 L160 162 Q178 162 178 120Z" fill="black" />
+        <Rect x={18} y={106} width={164} height={16} rx={4} fill="black" />
+        <Rect x={50} y={74} width={100} height={34} rx={5} fill="black" />
+        <Rect x={68} y={52} width={64} height={24} rx={5} fill="black" />
+        <Rect x={90} y={30} width={20} height={24} rx={5} fill="black" />
+      </>
+    ),
     outline: () => (
       <Svg width="100%" height="100%" viewBox="0 0 200 200">
         <Path d="M10 155 Q30 148 50 155 Q70 162 90 155 Q110 148 130 155 Q150 162 170 155 Q185 150 190 155 L190 175 Q170 168 150 175 Q130 182 110 175 Q90 168 70 175 Q50 182 30 175 Q15 170 10 175Z" fill="transparent" stroke="#0288D1" strokeWidth={1.5} />
@@ -210,6 +277,16 @@ const VEHICLES: Vehicle[] = [
   // ── Race Car ─────────────────────────────────────────────────────────────────
   {
     id: 'racecar', name: 'Race Car', emoji: '🏎️', bgColor: '#FFF0F0',
+    clipShape: () => (
+      <>
+        <Path d="M52 110 Q52 134 70 134 L155 134 Q172 128 178 116 Q168 104 148 102 L80 102 Q60 102 52 110Z" fill="black" />
+        <Path d="M148 108 Q168 104 188 110 Q185 120 168 122 Q155 122 148 118Z" fill="black" />
+        <Ellipse cx={96} cy={104} rx={22} ry={12} fill="black" />
+        <Rect x={18} y={94} width={36} height={8} rx={4} fill="black" />
+        <Circle cx={76} cy={138} r={16} fill="black" />
+        <Circle cx={148} cy={138} r={16} fill="black" />
+      </>
+    ),
     outline: () => (
       <Svg width="100%" height="100%" viewBox="0 0 200 200">
         <Rect x={28} y={98} width={6} height={20} rx={2} fill="#666" />
@@ -245,7 +322,8 @@ export default function ColoringVehiclesPage() {
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [liveStroke, setLiveStroke] = useState<Stroke | null>(null);
 
-  const canvasSizeRef = useRef(200);
+  const canvasWRef = useRef(200);
+  const canvasHRef = useRef(200);
   const currentPts = useRef<{ x: number; y: number }[]>([]);
   const colorRef = useRef(selectedColor);
   const brushRef = useRef(brushSize);
@@ -262,16 +340,14 @@ export default function ColoringVehiclesPage() {
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (e) => {
-        const ratio = 200 / canvasSizeRef.current;
-        const x = e.nativeEvent.locationX * ratio;
-        const y = e.nativeEvent.locationY * ratio;
+        const x = e.nativeEvent.locationX * (200 / canvasWRef.current);
+        const y = e.nativeEvent.locationY * (200 / canvasHRef.current);
         currentPts.current = [{ x, y }];
         setLiveStroke({ d: buildPath(currentPts.current), color: colorRef.current, width: brushRef.current });
       },
       onPanResponderMove: (e) => {
-        const ratio = 200 / canvasSizeRef.current;
-        const x = e.nativeEvent.locationX * ratio;
-        const y = e.nativeEvent.locationY * ratio;
+        const x = e.nativeEvent.locationX * (200 / canvasWRef.current);
+        const y = e.nativeEvent.locationY * (200 / canvasHRef.current);
         currentPts.current = [...currentPts.current, { x, y }];
         setLiveStroke({ d: buildPath(currentPts.current), color: colorRef.current, width: brushRef.current });
       },
@@ -298,7 +374,7 @@ export default function ColoringVehiclesPage() {
       {/* Header */}
       <View style={st.header}>
         <TouchableOpacity style={st.navBtn}
-          onPress={selectedVehicle ? () => setSelectedVehicle(null) : () => router.replace('/')}
+          onPress={selectedVehicle ? () => setSelectedVehicle(null) : () => router.replace('/drawing')}
           activeOpacity={0.85}>
           <Text style={{ fontSize: 12 * scale, color: '#fff', fontWeight: '800' }}>
             {selectedVehicle ? '← Vehicles' : '🏠'}
@@ -388,19 +464,27 @@ export default function ColoringVehiclesPage() {
           {/* Canvas */}
           <View style={[st.canvas, { backgroundColor: selectedVehicle.bgColor }]}
             onLayout={e => {
-              canvasSizeRef.current = Math.min(e.nativeEvent.layout.width, e.nativeEvent.layout.height);
+              canvasWRef.current = e.nativeEvent.layout.width;
+              canvasHRef.current = e.nativeEvent.layout.height;
             }}
           >
-            {/* Strokes layer (below outline) */}
-            <Svg style={StyleSheet.absoluteFill} viewBox="0 0 200 200" pointerEvents="none">
-              {strokes.map((s, i) => (
-                <Path key={i} d={s.d} stroke={s.color} strokeWidth={s.width}
-                  fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              ))}
-              {liveStroke && (
-                <Path d={liveStroke.d} stroke={liveStroke.color} strokeWidth={liveStroke.width}
-                  fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              )}
+            {/* Strokes clipped to vehicle silhouette */}
+            <Svg style={StyleSheet.absoluteFill} viewBox="0 0 200 200" preserveAspectRatio="none" pointerEvents="none">
+              <Defs>
+                <ClipPath id="vehicleClip">
+                  {selectedVehicle.clipShape()}
+                </ClipPath>
+              </Defs>
+              <G clipPath="url(#vehicleClip)">
+                {strokes.map((s, i) => (
+                  <Path key={i} d={s.d} stroke={s.color} strokeWidth={s.width}
+                    fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                ))}
+                {liveStroke && (
+                  <Path d={liveStroke.d} stroke={liveStroke.color} strokeWidth={liveStroke.width}
+                    fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                )}
+              </G>
             </Svg>
 
             {/* Outline on top */}

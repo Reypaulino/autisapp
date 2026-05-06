@@ -6,12 +6,6 @@
 
 ### High Priority
 
-**BUG-001 · `app/(tabs)/coloring-vehicles.tsx`**
-Drawing strokes are not clipped to the vehicle silhouette — the brush can paint outside the vehicle outline.
-Needs `<Defs><ClipPath id="vehicleClip">` + `<G clipPath="url(#vehicleClip)">` wrapping on the strokes SVG layer.
-Same fix already applied to `coloring.tsx`.
-
----
 
 **BUG-002 · `app/(tabs)/sensory.tsx`**
 BubblePop bubbles hardcoded at `66×66px`. ColorMix target box hardcoded at `210×88px`.
@@ -75,3 +69,6 @@ Build commands will fail with a version mismatch until the CLI is updated (`npm 
 | CLOSED-004 | `app/(tabs)/sensory.tsx` | Rhythm Tap pads hardcoded at 120×120px — overflowed on iPhone | 2025-05-01 |
 | CLOSED-005 | `.expo/` | Directory root-owned, blocked Expo CLI type file writes on startup | 2025-05-06 |
 | CLOSED-006 | `app/_layout.tsx` | `expo-env.d.ts` root-owned, blocked TypeScript type generation | 2025-05-06 |
+| CLOSED-007 | `app/(tabs)/coloring-vehicles.tsx` | No `clipShape` / no `ClipPath` — strokes painted outside vehicle outlines | 2026-05-06 |
+| CLOSED-008 | `app/(tabs)/coloring.tsx` + `coloring-vehicles.tsx` | Touch coordinates wrong in landscape — `Math.min(w,h)` ratio applied to both axes + SVG letterboxing offset | 2026-05-06 |
+| CLOSED-009 | `app/(tabs)/coloring.tsx` + `coloring-vehicles.tsx` | Back button routed to `/` instead of `/drawing` hub | 2026-05-06 |

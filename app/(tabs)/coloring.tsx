@@ -3,7 +3,7 @@ import {
   StyleSheet, View, TouchableOpacity, Text, Dimensions, ScrollView, PanResponder,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import Svg, { Path, Circle, Ellipse, Rect, Defs, ClipPath, G } from 'react-native-svg';
+import Svg, { Path, Circle, Ellipse, Rect, Defs, ClipPath, G, Polygon } from 'react-native-svg';
 
 function getScale(w: number) {
   if (w >= 1300) return 1.3;
@@ -323,7 +323,8 @@ export default function ColoringPage() {
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [liveStroke, setLiveStroke] = useState<Stroke | null>(null);
 
-  const canvasSizeRef = useRef(200);
+  const canvasWRef = useRef(200);
+  const canvasHRef = useRef(200);
   const currentPts = useRef<{ x: number; y: number }[]>([]);
   const colorRef = useRef(selectedColor);
   const brushRef = useRef(brushSize);
@@ -340,16 +341,14 @@ export default function ColoringPage() {
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (e) => {
-        const ratio = 200 / canvasSizeRef.current;
-        const x = e.nativeEvent.locationX * ratio;
-        const y = e.nativeEvent.locationY * ratio;
+        const x = e.nativeEvent.locationX * (200 / canvasWRef.current);
+        const y = e.nativeEvent.locationY * (200 / canvasHRef.current);
         currentPts.current = [{ x, y }];
         setLiveStroke({ d: buildPath(currentPts.current), color: colorRef.current, width: brushRef.current });
       },
       onPanResponderMove: (e) => {
-        const ratio = 200 / canvasSizeRef.current;
-        const x = e.nativeEvent.locationX * ratio;
-        const y = e.nativeEvent.locationY * ratio;
+        const x = e.nativeEvent.locationX * (200 / canvasWRef.current);
+        const y = e.nativeEvent.locationY * (200 / canvasHRef.current);
         currentPts.current = [...currentPts.current, { x, y }];
         setLiveStroke({ d: buildPath(currentPts.current), color: colorRef.current, width: brushRef.current });
       },
@@ -374,7 +373,7 @@ export default function ColoringPage() {
     <View style={st.screen}>
       <View style={st.header}>
         <TouchableOpacity style={st.navBtn}
-          onPress={selectedAnimal ? () => setSelectedAnimal(null) : () => router.replace('/')}
+          onPress={selectedAnimal ? () => setSelectedAnimal(null) : () => router.replace('/drawing')}
           activeOpacity={0.85}>
           <Text style={{ fontSize: 12 * scale, color: '#fff', fontWeight: '800' }}>
             {selectedAnimal ? '← Animals' : '🏠'}
@@ -449,10 +448,13 @@ export default function ColoringPage() {
           </View>
 
           <View style={[st.canvas, { backgroundColor: selectedAnimal.bgColor }]}
-            onLayout={e => { canvasSizeRef.current = Math.min(e.nativeEvent.layout.width, e.nativeEvent.layout.height); }}
+            onLayout={e => {
+              canvasWRef.current = e.nativeEvent.layout.width;
+              canvasHRef.current = e.nativeEvent.layout.height;
+            }}
           >
             {/* Strokes clipped to the animal silhouette */}
-            <Svg style={StyleSheet.absoluteFill} viewBox="0 0 200 200" pointerEvents="none">
+            <Svg style={StyleSheet.absoluteFill} viewBox="0 0 200 200" preserveAspectRatio="none" pointerEvents="none">
               <Defs>
                 <ClipPath id="animalClip">
                   {selectedAnimal.clipShape()}
