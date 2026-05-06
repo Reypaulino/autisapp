@@ -18,8 +18,8 @@ function getScale(w: number) {
   return 0.85;
 }
 
-const COLS = 3;
-const ROWS = 3;
+const COLS = 4;
+const ROWS = 2;
 const CARD_GAP = 10;
 
 const GAMES = [
@@ -29,8 +29,7 @@ const GAMES = [
   { emoji: '🔗', name: 'Matching',   bg: '#C62828', shadow: '#B71C1C', accent: '#FFCDD2',  route: '/matching' },
   { emoji: '🧸', name: 'Jigsaw',     bg: '#00695C', shadow: '#004D40', accent: '#B2DFDB',  route: '/jigsaw' },
   { emoji: '🌈', name: 'Sensory',    bg: '#E65100', shadow: '#BF360C', accent: '#FFE0B2',  route: '/sensory' },
-  { emoji: '🎨', name: 'Animals',    bg: '#2E7D32', shadow: '#1B5E20', accent: '#C8E6C9',  route: '/coloring' },
-  { emoji: '🚗', name: 'Vehicles',   bg: '#0277BD', shadow: '#01579B', accent: '#B3E5FC',  route: '/coloring-vehicles' },
+  { emoji: '🎨', name: 'Drawing',    bg: '#AD1457', shadow: '#880E4F', accent: '#F8BBD0',  route: '/drawing' },
   { emoji: '⭐', name: 'Activities', bg: '#4527A0', shadow: '#311B92', accent: '#D1C4E9',  route: '/activities' },
 ] as const;
 
