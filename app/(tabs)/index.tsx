@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Text,
   Dimensions,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -31,14 +32,14 @@ export default function HomeScreen() {
 
       {/* ── Left: Welcome section ── */}
       <View style={styles.leftPanel}>
-        {/* App logo / mascot area */}
-        <View style={styles.mascotRow}>
-          <Text style={{ fontSize: 52 * scale }}>🌈</Text>
-          <Text style={{ fontSize: 52 * scale }}>🌟</Text>
-          <Text style={{ fontSize: 52 * scale }}>🎓</Text>
-        </View>
+        {/* App logo */}
+        <Image
+          source={require('@/assets/logo.png')}
+          style={{ width: 120 * scale, height: 120 * scale, borderRadius: 24 }}
+          resizeMode="contain"
+        />
 
-        <Text style={[styles.appName, { fontSize: 28 * scale }]}>Learning Games</Text>
+        <Text style={[styles.appName, { fontSize: 28 * scale }]}>ThinkiTiles</Text>
         <Text style={[styles.appTagline, { fontSize: 13 * scale }]}>
           Fun educational games designed{'\n'}for curious young minds!
         </Text>
@@ -145,10 +146,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
-  },
-  mascotRow: {
-    flexDirection: 'row',
-    gap: 10,
   },
   appName: {
     fontWeight: '900',

@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "autisapp",
+    "name": "ThinkiTiles",
     "slug": "autisapp",
     "version": "1.0.0",
     "orientation": "landscape",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/logo.png",
     "scheme": "autisapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -18,10 +18,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -39,12 +37,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/logo.png",
+          "imageWidth": 280,
           "resizeMode": "contain",
-          "backgroundColor": "#7B1FA2",
+          "backgroundColor": "#0D2463",
           "dark": {
-            "backgroundColor": "#7B1FA2"
+            "backgroundColor": "#0D2463"
           }
         }
       ],
