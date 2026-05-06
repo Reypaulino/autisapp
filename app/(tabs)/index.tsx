@@ -1,24 +1,72 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  Text,
+  Animated,
   Dimensions,
   Image,
+  LayoutChangeEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-function getScale(width: number) {
-  if (width >= 1300) return 1.4;
-  if (width >= 1000) return 1.2;
-  if (width >= 800)  return 1.05;
-  return 1;
+function getScale(w: number) {
+  if (w >= 1300) return 1.3;
+  if (w >= 1000) return 1.15;
+  if (w >= 800)  return 1.0;
+  return 0.85;
+}
+
+const COLS = 3;
+const ROWS = 3;
+const CARD_GAP = 10;
+
+const GAMES = [
+  { emoji: '🧩', name: 'Memory',     bg: '#1565C0', shadow: '#0D47A1', accent: '#FFD700',  route: '/memory' },
+  { emoji: '🗂️', name: 'Sorting',    bg: '#D84315', shadow: '#BF360C', accent: '#FFCCBC',  route: '/sorting' },
+  { emoji: '🎯', name: 'Puzzle',     bg: '#6A1B9A', shadow: '#4A148C', accent: '#E1BEE7',  route: '/puzzle' },
+  { emoji: '🔗', name: 'Matching',   bg: '#C62828', shadow: '#B71C1C', accent: '#FFCDD2',  route: '/matching' },
+  { emoji: '🧸', name: 'Jigsaw',     bg: '#00695C', shadow: '#004D40', accent: '#B2DFDB',  route: '/jigsaw' },
+  { emoji: '🌈', name: 'Sensory',    bg: '#E65100', shadow: '#BF360C', accent: '#FFE0B2',  route: '/sensory' },
+  { emoji: '🎨', name: 'Animals',    bg: '#2E7D32', shadow: '#1B5E20', accent: '#C8E6C9',  route: '/coloring' },
+  { emoji: '🚗', name: 'Vehicles',   bg: '#0277BD', shadow: '#01579B', accent: '#B3E5FC',  route: '/coloring-vehicles' },
+  { emoji: '⭐', name: 'Activities', bg: '#4527A0', shadow: '#311B92', accent: '#D1C4E9',  route: '/activities' },
+] as const;
+
+type Game = (typeof GAMES)[number];
+
+function GameCard({
+  game, cardW, cardH, scale, onPress,
+}: {
+  game: Game; cardW: number; cardH: number; scale: number; onPress: () => void;
+}) {
+  const anim = useRef(new Animated.Value(1)).current;
+  const pressIn  = () => Animated.spring(anim, { toValue: 0.91, useNativeDriver: true, tension: 300, friction: 10 }).start();
+  const pressOut = () => Animated.spring(anim, { toValue: 1,    useNativeDriver: true, tension: 300, friction: 10 }).start();
+
+  return (
+    <Animated.View style={{ transform: [{ scale: anim }], width: cardW, height: cardH }}>
+      <TouchableOpacity
+        style={[styles.card, { backgroundColor: game.bg, borderBottomColor: game.shadow }]}
+        onPress={onPress}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        activeOpacity={1}
+      >
+        <Text style={{ fontSize: Math.min(cardH * 0.38, 46 * scale) }}>{game.emoji}</Text>
+        <Text style={[styles.cardName, { fontSize: Math.max(10, 12 * scale), color: game.accent }]}>
+          {game.name}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
 }
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [dims, setDims] = useState(Dimensions.get('window'));
+  const [dims, setDims]     = useState(Dimensions.get('window'));
+  const [gridSz, setGridSz] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
     const sub = Dimensions.addEventListener('change', ({ window }) => setDims(window));
@@ -27,96 +75,93 @@ export default function HomeScreen() {
 
   const scale = getScale(dims.width);
 
+  const onGridLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setGridSz({ w: width, h: height });
+  };
+
+  // Card sizing: fit COLS×ROWS cards exactly inside the measured grid area
+  const HEADER_H = 26;
+  const HEADER_GAP = 8;
+  const availW = gridSz.w;
+  const availH = gridSz.h - HEADER_H - HEADER_GAP;
+  const cardW  = availW > 0 ? Math.floor((availW - CARD_GAP * (COLS - 1)) / COLS) : 0;
+  const cardH  = availH > 0 ? Math.floor((availH - CARD_GAP * (ROWS - 1)) / ROWS) : 0;
+
+  const brandW = Math.round(dims.width * 0.26);
+
   return (
     <View style={styles.screen}>
 
-      {/* ── Left: Welcome section ── */}
-      <View style={styles.leftPanel}>
-        {/* App logo */}
-        <Image
-          source={require('@/assets/logo.png')}
-          style={{ width: 120 * scale, height: 120 * scale, borderRadius: 24 }}
-          resizeMode="contain"
-        />
+      {/* ── Brand Panel ── */}
+      <View style={[styles.brand, { width: brandW }]}>
 
-        <Text style={[styles.appName, { fontSize: 28 * scale }]}>ThinkiTiles</Text>
-        <Text style={[styles.appTagline, { fontSize: 13 * scale }]}>
-          Learn · Play · Grow{'\n'}Games for curious young minds!
-        </Text>
-
-        {/* Decorative badges */}
-        <View style={styles.badgeRow}>
-          {['🧠 Memory', '🗂️ Sorting', '⭐ Stars'].map(b => (
-            <View key={b} style={styles.badge}>
-              <Text style={[styles.badgeText, { fontSize: 11 * scale }]}>{b}</Text>
-            </View>
+        {/* Top decorative stars */}
+        <View style={styles.starsRow}>
+          {['✨', '⭐', '✨'].map((s, i) => (
+            <Text key={i} style={[styles.starText, { fontSize: 14 * scale }]}>{s}</Text>
           ))}
         </View>
-      </View>
 
-      {/* ── Divider ── */}
-      <View style={styles.divider} />
+        {/* Logo with glow ring */}
+        <View style={styles.logoRing}>
+          <Image
+            source={require('@/assets/logo.png')}
+            style={{ width: 96 * scale, height: 96 * scale, borderRadius: 20 * scale }}
+            resizeMode="contain"
+          />
+        </View>
 
-      {/* ── Right: Explore section ── */}
-      <View style={styles.rightPanel}>
-        <Text style={[styles.exploreLabel, { fontSize: 13 * scale }]}>
-          Ready to play?
+        {/* Name */}
+        <Text style={[styles.brandName, { fontSize: 22 * scale }]}>ThinkiTiles</Text>
+
+        {/* Tagline */}
+        <Text style={[styles.brandTagline, { fontSize: 10 * scale }]}>
+          LEARN · PLAY · GROW
         </Text>
 
-        {/* Big Explore Games button */}
-        <TouchableOpacity
-          style={styles.exploreBtn}
-          onPress={() => router.push('/explore-games')}
-          activeOpacity={0.85}
-        >
-          <Text style={{ fontSize: 30 * scale }}>🎮</Text>
-          <View style={{ alignItems: 'center', gap: 2 }}>
-            <Text style={[styles.exploreBtnTitle, { fontSize: 18 * scale }]}>Explore Games</Text>
-            <Text style={[styles.exploreBtnSub, { fontSize: 11 * scale }]}>Memory · Sorting · Puzzle · More!</Text>
-          </View>
-          <View style={styles.exploreBtnArrow}>
-            <Text style={[styles.arrowText, { fontSize: 13 * scale }]}>▶ Play!</Text>
-          </View>
-        </TouchableOpacity>
+        {/* Divider line */}
+        <View style={styles.brandDivider} />
 
-        {/* Learn & Play button */}
-        <TouchableOpacity
-          style={styles.learnBtn}
-          onPress={() => router.push('/learn')}
-          activeOpacity={0.85}
-        >
-          <Text style={{ fontSize: 30 * scale }}>📚</Text>
-          <View style={{ alignItems: 'center', gap: 2 }}>
-            <Text style={[styles.learnBtnTitle, { fontSize: 18 * scale }]}>Learn & Play</Text>
-            <Text style={[styles.learnBtnSub, { fontSize: 11 * scale }]}>Activities · Sensory · More!</Text>
+        {/* Stats chips */}
+        <View style={styles.statsRow}>
+          <View style={styles.chip}>
+            <Text style={[styles.chipNum, { fontSize: 17 * scale }]}>9</Text>
+            <Text style={[styles.chipLbl, { fontSize: 8 * scale }]}>GAMES</Text>
           </View>
-          <View style={styles.learnBtnArrow}>
-            <Text style={[styles.arrowText, { fontSize: 13 * scale }]}>▶ Learn!</Text>
+          <View style={[styles.chip, styles.chipGold]}>
+            <Text style={[styles.chipNum, { fontSize: 17 * scale, color: '#0A1628' }]}>🆓</Text>
+            <Text style={[styles.chipLbl, { fontSize: 8 * scale, color: '#0A1628' }]}>FREE</Text>
           </View>
-        </TouchableOpacity>
-
-        {/* Quick-play pills */}
-        <View style={styles.quickRow}>
-          <Text style={[styles.quickLabel, { fontSize: 10 * scale }]}>Quick:</Text>
-          <TouchableOpacity style={[styles.quickPill, { backgroundColor: '#1565C0' }]} onPress={() => router.push('/memory')} activeOpacity={0.85}>
-            <Text style={[styles.quickPillText, { fontSize: 10 * scale }]}>🧩 Memory</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickPill, { backgroundColor: '#E65100' }]} onPress={() => router.push('/sorting')} activeOpacity={0.85}>
-            <Text style={[styles.quickPillText, { fontSize: 10 * scale }]}>🗂️ Sorting</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickPill, { backgroundColor: '#FF6F00' }]} onPress={() => router.push('/activities')} activeOpacity={0.85}>
-            <Text style={[styles.quickPillText, { fontSize: 10 * scale }]}>🎯 Activities</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickPill, { backgroundColor: '#6A1B9A' }]} onPress={() => router.push('/sensory')} activeOpacity={0.85}>
-            <Text style={[styles.quickPillText, { fontSize: 10 * scale }]}>🌈 Sensory</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickPill, { backgroundColor: '#AD1457' }]} onPress={() => router.push('/coloring')} activeOpacity={0.85}>
-            <Text style={[styles.quickPillText, { fontSize: 10 * scale }]}>🎨 Animals</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.quickPill, { backgroundColor: '#0277BD' }]} onPress={() => router.push('/coloring-vehicles')} activeOpacity={0.85}>
-            <Text style={[styles.quickPillText, { fontSize: 10 * scale }]}>🚗 Vehicles</Text>
-          </TouchableOpacity>
         </View>
+
+      </View>
+
+      {/* ── Separator ── */}
+      <View style={styles.sep} />
+
+      {/* ── Game Grid ── */}
+      <View style={styles.gridWrap} onLayout={onGridLayout}>
+
+        <Text style={[styles.gridHeader, { fontSize: 10 * scale }]}>
+          ▶  CHOOSE YOUR GAME
+        </Text>
+
+        {cardW > 0 && cardH > 0 && (
+          <View style={[styles.grid, { gap: CARD_GAP }]}>
+            {GAMES.map(g => (
+              <GameCard
+                key={g.route}
+                game={g}
+                cardW={cardW}
+                cardH={cardH}
+                scale={scale}
+                onPress={() => router.push(g.route as any)}
+              />
+            ))}
+          </View>
+        )}
+
       </View>
 
     </View>
@@ -126,164 +171,142 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#0A1628',
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    gap: 16,
-  },
-  // Left panel
-  leftPanel: {
-    flex: 1.1,
-    backgroundColor: '#7B1FA2',
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    gap: 10,
-    shadowColor: '#4A148C',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  appName: {
-    fontWeight: '900',
-    color: '#FFD700',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-  appTagline: {
-    color: '#E1BEE7',
-    fontWeight: '600',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
-  },
-  badge: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  badgeText: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-  // Divider
-  divider: {
-    width: 3,
-    backgroundColor: '#CE93D8',
-    borderRadius: 3,
-    marginVertical: 8,
-  },
-  // Right panel
-  rightPanel: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 14,
     gap: 14,
   },
-  exploreLabel: {
-    fontWeight: '800',
-    color: '#6A1B9A',
-  },
-  // Explore Games big button
-  exploreBtn: {
-    width: '100%',
-    backgroundColor: '#43A047',
+
+  // ── Brand panel ──
+  brand: {
+    backgroundColor: '#111F3E',
     borderRadius: 24,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    gap: 10,
-    shadowColor: '#2E7D32',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 10,
-    borderWidth: 3,
-    borderColor: '#2E7D32',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 10,
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.07)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 14,
   },
-  exploreBtnTitle: {
+  starsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  starText: {
+    opacity: 0.7,
+  },
+  logoRing: {
+    borderRadius: 28,
+    padding: 5,
+    backgroundColor: 'rgba(79, 195, 247, 0.12)',
+    borderWidth: 2,
+    borderColor: 'rgba(79, 195, 247, 0.35)',
+    shadowColor: '#4FC3F7',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 10,
+  },
+  brandName: {
     fontWeight: '900',
     color: '#FFD700',
     letterSpacing: 0.5,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
-  exploreBtnSub: {
-    color: 'rgba(255,255,255,0.85)',
-    fontWeight: '600',
+  brandTagline: {
+    color: '#90CAF9',
+    fontWeight: '800',
+    letterSpacing: 2,
+    textAlign: 'center',
   },
-  exploreBtnArrow: {
-    marginTop: 4,
-    backgroundColor: '#FFD700',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+  brandDivider: {
+    width: '60%',
+    height: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 1,
+    marginVertical: 2,
   },
-  arrowText: {
-    fontWeight: '900',
-    color: '#2E7D32',
-  },
-  // Learn & Play button
-  learnBtn: {
-    width: '100%',
-    backgroundColor: '#6A1B9A',
-    borderRadius: 24,
+  statsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    gap: 10,
-    shadowColor: '#4A148C',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 10,
-    borderWidth: 3,
-    borderColor: '#4A148C',
-  },
-  learnBtnTitle: {
-    fontWeight: '900',
-    color: '#CE93D8',
-    letterSpacing: 0.5,
-  },
-  learnBtnSub: {
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '600',
-  },
-  learnBtnArrow: {
-    backgroundColor: '#CE93D8',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  // Quick-play pills
-  quickRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
-  quickLabel: {
-    color: '#6A1B9A',
-    fontWeight: '700',
+  chip: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    minWidth: 48,
   },
-  quickPill: {
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+  chipGold: {
+    backgroundColor: '#FFD700',
+    borderColor: '#FFC107',
   },
-  quickPillText: {
+  chipNum: {
+    fontWeight: '900',
     color: '#fff',
+    lineHeight: 22,
+  },
+  chipLbl: {
+    color: 'rgba(255,255,255,0.65)',
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+
+  // ── Separator ──
+  sep: {
+    width: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderRadius: 2,
+    marginVertical: 6,
+  },
+
+  // ── Grid area ──
+  gridWrap: {
+    flex: 1,
+  },
+  gridHeader: {
+    color: 'rgba(255,255,255,0.35)',
     fontWeight: '800',
+    letterSpacing: 2.5,
+    textAlign: 'center',
+    height: 26,
+    textAlignVertical: 'center',
+    marginBottom: 8,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+
+  // ── Game card ──
+  card: {
+    flex: 1,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    borderBottomWidth: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  cardName: {
+    fontWeight: '900',
+    letterSpacing: 0.3,
+    textAlign: 'center',
   },
 });
